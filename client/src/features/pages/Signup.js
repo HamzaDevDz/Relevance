@@ -8,7 +8,6 @@ import {setUser} from "../slices/userSlice";
 import {useDispatch} from "react-redux";
 import {ExclamationCircleIcon} from "@heroicons/react/outline";
 import {PhotographIcon} from "@heroicons/react/solid";
-import Avatar from "../components/Avatar";
 
 function Signup () {
 
@@ -92,14 +91,13 @@ function Signup () {
     useEffect(() => {
         if(resultSignup.isError){
             if(!idSetTimeOut) clearTimeout(idSetTimeOut);
-            setError(resultSignup.error.data.messages)
+            setError(resultSignup.error.data?.messages)
             idSetTimeOut = setTimeout(() => setError(""), 5000);
-            setError(resultSignup.error.data.messages);
             if(Array.isArray(resultSignup.error.data.fields)){
-                if(resultSignup.error.data.fields.includes("username")) setErrorUsername("Invalid Username");
-                if(resultSignup.error.data.fields.includes("password")) setErrorPassword("Invalid Password");
+                if(resultSignup.error.data?.fields.includes("username")) setErrorUsername("Invalid Username");
+                if(resultSignup.error.data?.fields.includes("password")) setErrorPassword("Invalid Password");
             }else{
-                if(resultSignup.error.data.fields === "username") setErrorUsername("Invalid Username");
+                if(resultSignup.error.data?.fields === "username") setErrorUsername("Invalid Username");
                 else setErrorPassword("Incorrect Password");
             }
         }

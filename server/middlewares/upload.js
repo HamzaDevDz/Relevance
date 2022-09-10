@@ -3,7 +3,7 @@ import {GridFsStorage} from 'multer-gridfs-storage'
 import path from "path";
 
 const storage = new GridFsStorage({
-    url: process.env.MONGODB_URI_ATLAS,
+    url: process.env.MONGODB_URI_LOCAL || process.env.MONGODB_URI_ATLAS,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         const matchImage = ["image/png", "image/jpeg", "image/jpg"]
