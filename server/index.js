@@ -24,6 +24,8 @@ app.use(cors());
 
 connectMongoose();
 
+app.get('/', (req, res) => res.status(200).send("Hello Baghdad, I'm Relevance!"));
+
 app.use("/api/users", users);
 app.use("/api/posts", posts);
 app.use("/api/comments", comments);
