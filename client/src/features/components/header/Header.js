@@ -1,7 +1,7 @@
 import {ChatAltIcon, HomeIcon} from "@heroicons/react/solid";
 import {useEffect, useRef, useState} from "react";
 import Avatar from "../Avatar";
-import {Link, useNavigate, useLocation} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {PAGE_HOME, PAGE_LOGIN, PAGE_MESSAGES} from "../../../config";
 import Menu from "./Menu";
 import {useDispatch, useSelector} from "react-redux";
@@ -15,13 +15,12 @@ function Header () {
     const user = useSelector(selectUser);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const location = useLocation();
 
     const [openMenu, setOpenMenu] = useState(false);
-    const [numberMissedDiscussions, setNumberMissedDiscussions] = useState(0);
+    const [numberMissedMessages, setNumberMissedMessages] = useState(0);
     const refBtnMenu = useRef(undefined)
 
-    const {refetch: refetchWindows, currentData: windows} = useGetWindowsQuery({idUser: user?._id}, {skip: !user});
+    const {refetch: refetchWindows, data: windows} = useGetWindowsQuery({idUser: user?._id}, {skip: !user});
 
     useEffect(() => {
         if(sessionStorage.getItem('user')){
@@ -35,21 +34,20 @@ function Header () {
     }, [user])
 
     useEffect(() => {
-        let nbrMissedDiscussions = 0;
-        windows?.forEach(w => {
-            if(!w.seenLastMessage) nbrMissedDiscussions++;
-        })
-        setNumberMissedDiscussions(nbrMissedDiscussions)
+        let missedMessages = 0;
+        windows?.forEach(w => missedMessages = missedMessages + w.missedMessages);
+        setNumberMissedMessages(missedMessages);
         const handleSocketRefetchWindows = ({idWindow}) => {
-            if(windows.findIndex(w => w.idWindow === idWindow) !== -1){
+            if(windows.findIndex(w => w.idWindow === idWindow) !== -1) {
+                console.log('we have to refetchWindows');
                 refetchWindows();
             }
         }
-        if(location.pathname !== PAGE_MESSAGES) Socket.on('checkLastSeenIdMessages', handleSocketRefetchWindows);
+        Socket.on('checkMissedMessages', handleSocketRefetchWindows);
         return () => {
-            Socket.off('checkLastSeenIdMessages', handleSocketRefetchWindows);
+            Socket.off('checkMissedMessages', handleSocketRefetchWindows);
         }
-    }, [location.pathname, windows])
+    }, [windows])
 
     return (
         <header className={"sticky top-0 w-full h-[60px] flex items-center justify-center p-2 bg-white shadow-md space-x-3 dark:bg-gray-800 z-20"}>
@@ -65,8 +63,8 @@ function Header () {
                         <Search />
                         <div className={"flex items-center space-x-3 relative "}>
                             <Link to={PAGE_MESSAGES} className={"w-10 h-10 flex justify-center items-center relative rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-600 hover:cursor-pointer"}>
-                                <span className={`flex justify-center items-center absolute w-4 h-4 top-0 right-1 bg-red-400 rounded-full aspect-square ${numberMissedDiscussions > 0 ? 'inline-flex' : 'hidden'}`}>
-                                    {numberMissedDiscussions}
+                                <span className={`flex justify-center items-center absolute w-4 h-4 top-0 right-1 bg-red-400 rounded-full aspect-square ${numberMissedMessages > 0 ? 'inline-flex' : 'hidden'}`}>
+                                    {numberMissedMessages}
                                 </span>
                                 <ChatAltIcon className={"h-6 text-blue-800"} />
                             </Link>

@@ -2,7 +2,7 @@ import {
     useAddMessageMutation,
     useDeleteMessageMutation,
     useGetMessagesQuery,
-    useGetWindowsQuery
+    useGetWindowsQuery, useSetLastSeenIdMessageMutation
 } from "../api/messageApi";
 import {useSelector} from "react-redux";
 import {selectUser} from "../slices/userSlice";
@@ -29,6 +29,7 @@ function Messages () {
     const {data: messages, isFetching: isFetchingMessages} = useGetMessagesQuery({idWindow: selectedWindow?.idWindow, idUser: user?._id, limit: limitGetMessages}, {skip: !selectedWindow || !user});
     const [addMessageDB, resultAddMessageDB] = useAddMessageMutation();
     const [deleteMessageDB, resultDeleteMessageDB] = useDeleteMessageMutation();
+    const [setLastSeenIdMessage, resultSetLastSeenIdMessage] = useSetLastSeenIdMessageMutation();
 
     useEffect(() => {
         if(selectedWindow){
@@ -45,13 +46,13 @@ function Messages () {
     useEffect(() => {
         if(resultAddMessageDB.isSuccess) {
             refInputContent.current.value = "";
-            Socket.emit('addMessage', {idWindow: resultAddMessageDB.data.idWindow, idMessage: resultAddMessageDB.data.idMessage});
+            Socket.emit('addMessage', {idMessage: resultAddMessageDB.data.idMessage, idUser: user?._id});
         }
     }, [resultAddMessageDB])
 
     useEffect(() => {
         if(resultDeleteMessageDB.isSuccess) {
-            Socket.emit('deleteMessage', {idWindow: resultDeleteMessageDB.data.idWindow, idMessage: resultDeleteMessageDB.data.idMessage});
+            Socket.emit('deleteMessage', {idWindow: resultDeleteMessageDB.data.idWindow, idMessage: resultDeleteMessageDB.data.idMessage, idUser: user?._id});
         }
     }, [resultDeleteMessageDB])
 
@@ -67,6 +68,17 @@ function Messages () {
             setLimitGetMessages(messages.length + LIMIT_GET_MESSAGES);
         }
     }, [messages])
+
+    useEffect(() => {
+        if(selectedWindow?.missedMessages > 0){
+            setLastSeenIdMessage({idWindow: selectedWindow.idWindow, idUser: user?._id});
+        }
+    }, [messages?.length, selectedWindow])
+
+    useEffect(() => {
+        if(resultSetLastSeenIdMessage.isSuccess)
+            Socket.emit('checkMissedMessages', {idWindow: selectedWindow?.idWindow});
+    }, [resultSetLastSeenIdMessage.isSuccess])
 
     return (
         <div className={"flex grow w-full relative overflow-x-hidden md:max-w-4xl md:border-x md:border-gray-300"}>

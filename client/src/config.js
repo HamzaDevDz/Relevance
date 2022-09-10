@@ -4,8 +4,8 @@ export const PAGE_SIGNUP = "/SignUp";
 export const PAGE_PROFILE = "/Profile";
 export const PAGE_MESSAGES = "/Messages";
 
-// export const baseURL = "http://localhost:9000";
-export const baseURL = "https://relevance-social-media.herokuapp.com";
+export const baseURL = "http://localhost:9000";
+// export const baseURL = "https://relevance-social-media.herokuapp.com";
 export const baseQueryFileURL = `${baseURL}/api/medias/retrieve/?filename=`
 
 export const LIMIT_GET_POSTS = 5;

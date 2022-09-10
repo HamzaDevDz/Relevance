@@ -60,24 +60,32 @@ router.get('/getWindows/:idUser', async (req, res, next) => {
                 }
             }
         ])
-        if(!windows || windows.length === 0) return res.status(404).json({message: "No Windows Opened"});
+        if(windows.length === 0) return res.status(404).json({message: "No Windows Opened !"});
         let results = [];
         for (const window of windows) {
-            const indexSelf = window.idUsers.findIndex(f => f.idUser.toString() === req.params.idUser);
             const indexFriend = window.idUsers.findIndex(f => f.idUser.toString() !== req.params.idUser);
-            let windowFriend = await modelUser.aggregate([
+            const idLastMessage = window.idUsers[window.idUsers.findIndex(f => f.idUser.toString() === req.params.idUser)].lastSeenIdMessage;
+            const timestampLastMessage = await modelMessage.aggregate([
+                {$match: {_id: ObjectId(idLastMessage)}},
+                {$project: {timestamp: 1}}
+            ]);
+            const countMissedMessages = await modelMessage.aggregate([
+                {$match: {idWindow: ObjectId(window._id), timestamp: {$gt: timestampLastMessage[0].timestamp}}},
+                {$count: "missedMessages"}
+            ]);
+            const friend = await modelUser.aggregate([
                 {$match: {_id: ObjectId(window.idUsers[indexFriend].idUser)}},
                 {$project: {_id: 1, firstName: 1, lastName: 1, urlImg: 1}}
             ]);
-            windowFriend[0]['idWindow'] = window._id.toString();
-            const idLastMessage = await modelMessage.aggregate([
-                {$match: {idWindow: window._id}},
-                {$project: {_id: 1, timestamp: 1}},
-                {$sort: {timestamp: -1}},
-                {$limit: 1}
-            ]);
-            windowFriend[0]['seenLastMessage'] = idLastMessage.length === 0 ? true : window.idUsers[indexSelf].lastSeenIdMessage === idLastMessage[0]._id.toString();
-            results.push(windowFriend[0]);
+            let windowPrime = {
+                idFriend: friend[0]._id.toString(),
+                idWindow: window._id.toString(),
+                firstName: friend[0].firstName,
+                lastName: friend[0].lastName,
+                urlImg: friend[0].urlImg,
+                missedMessages: countMissedMessages.length > 0 ? countMissedMessages[0].missedMessages : 0
+            }
+            results.push(windowPrime);
         }
         res.status(200).json(results);
     }catch(err){
@@ -158,8 +166,9 @@ router.post('/setLastSeenIdMessage', async (req, res, next) => {
                 $set: {'idUsers.$.lastSeenIdMessage': idLastMessage.length === 0 ? "" : idLastMessage[0]._id.toString()}
             }
         );
-        res.send('success').status(200);
+        res.json({success: 'success'}).status(200);
     }catch(err){
+        console.log(err)
         next(err);
     }
 });
@@ -228,73 +237,20 @@ router.get('/getMessages/:idWindow/:idUser/:limit', async (req, res, next) => {
             $limit: parseInt(req.params.limit),
         },
     ]);
-    await modelWindow.updateOne(
-        {
-            _id: ObjectId(req.params.idWindow),
-            'idUsers':{
-                $elemMatch: {
-                    'idUser': ObjectId(req.params.idUser)
-                }
-            }
-        },
-        {
-            $set: {'idUsers.$.lastSeenIdMessage': messages.length > 0 ? messages[0]._id.toString() : ""}
-        }
-    );
+    // await modelWindow.updateOne(
+    //     {
+    //         _id: ObjectId(req.params.idWindow),
+    //         'idUsers':{
+    //             $elemMatch: {
+    //                 'idUser': ObjectId(req.params.idUser)
+    //             }
+    //         }
+    //     },
+    //     {
+    //         $set: {'idUsers.$.lastSeenIdMessage': messages.length > 0 ? messages[0]._id.toString() : ""}
+    //     }
+    // );
     res.status(200).json(messages);
 })
-
-router.post('/uploadMoreMessages', async (req, res, next) => {
-    const moreMessages = await modelMessage.aggregate([
-        {
-            $match: {idWindow: ObjectId(req.body.idWindow)}
-        },
-        {
-            $lookup:{
-                from: "users",
-                localField: "idUser",
-                foreignField: "_id",
-                as: "user"
-            }
-        },
-        {
-            $project:{
-                _id: 1,
-                idWindow: 1,
-                content: 1,
-                timestamp: 1,
-                idUser: {$arrayElemAt: ["$user._id", 0]},
-                urlImgUser: {$arrayElemAt: ["$user.urlImg", 0]},
-                firstName: {$arrayElemAt: ["$user.firstName", 0]},
-                lastName: {$arrayElemAt: ["$user.lastName", 0]},
-            }
-        },
-        {
-            $sort: {
-                timestamp: -1
-            }
-        },
-        {
-            $skip: parseInt(req.body.skip)
-        },
-        {
-            $limit: parseInt(req.body.limit)
-        },
-    ]);
-    res.status(200).json(moreMessages);
-})
-
-router.get('/getThereAreMoreMessages/:skip', async (req, res, next) => {
-    const messages = await modelMessage.aggregate([
-        {
-            $match: {idWindow: ObjectId(req.body.idWindow)}
-        },
-        {
-            $skip: parseInt(req.params.skip)
-        },
-    ]);
-    res.status(200).send(messages.length > 0);
-});
-
 
 export default router;
