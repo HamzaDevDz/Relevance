@@ -16,7 +16,7 @@ import SocketComment from "./sockets/socketComment.js";
 import SocketMessage from "./sockets/socketMessage.js";
 
 const app = express();
-const port = process.env.EXPRESS_PORT || 9000;
+const port = process.env.PORT || process.env.EXPRESS_PORT;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());

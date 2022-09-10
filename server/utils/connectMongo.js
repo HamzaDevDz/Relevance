@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const connectMongo = () => {
     try{
         return mongoose.connect(
-            process.env.PORT || process.env.MONGO_URI,
+            process.env.MONGODB_URI_ATLAS || process.env.MONGODB_URI_LOCAL,
             {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
