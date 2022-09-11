@@ -29,6 +29,10 @@ function Post ({idPost, idUser, srcImgUser, firstName, lastName, timestamp, stat
         }
     }, [user])
 
+    useEffect(() => {
+        console.log(timestamp)
+    }, [timestamp])
+
     return (
         <div className={"flex flex-col items-center w-full bg-white border border-gray-300 py-3 relative mb-3"}>
             {
