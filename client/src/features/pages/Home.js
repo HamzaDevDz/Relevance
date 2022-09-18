@@ -123,7 +123,6 @@ function Home () {
                                             ''
                                     }
                                 </>
-
                 }
             </div>
         </div>

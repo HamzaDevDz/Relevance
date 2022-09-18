@@ -61,7 +61,7 @@ function Windows({show, setShow, selectedWindow, setSelectedWindow}) {
                              }>
                                 <Avatar srcImg={window.urlImg} size={10} />
                                 <p className={'ml-3'}><span className={'capitalize'}>{window.firstName}</span> <span className={'uppercase'}>{window?.lastName}</span></p>
-                                <div className={`p-1 rounded-full bg-red-400 absolute right-3 ${window?.missedMessages === 0 ? 'hidden' : 'inline-flex'}`}></div>
+                                <div className={`p-1 rounded-full bg-red-400 absolute right-3 ${window?.missedMessages === 0 ? 'hidden' : 'inline-flex'}`}>{window.missedMessages}</div>
                             </div>
                         ))
             }
