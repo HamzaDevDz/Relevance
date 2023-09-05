@@ -1,6 +1,6 @@
 # Relevance - Social Media Prototype
 
-Welcome to the Relevance repository! This project is a small-scale social media website prototype split into client and server components, built using ReactJS, TailwindCSS, SocketIO, ExpressJS, and MongoDB.
+Welcome to the Relevance repository! This project is a small-scale social media website prototype split into client and server components, built using ReactJS, Redux-Toolkit, TailwindCSS, SocketIO, ExpressJS, and MongoDB.
 
 ## Getting Started
 
